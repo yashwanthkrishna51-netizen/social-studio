@@ -37,8 +37,8 @@ function LoginForm() {
         return;
       }
 
-      router.push(callbackUrl);
-      router.refresh();
+      // Hard redirect ensures cookies are immediately sent to middleware on the next request
+      window.location.href = callbackUrl;
     } catch (err) {
       setBusy(false);
       setError("An unexpected error occurred during sign in. Please try again.");

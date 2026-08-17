@@ -1,4 +1,11 @@
-export { default } from "next-auth/middleware";
+import { withAuth } from "next-auth/middleware";
+
+export default withAuth({
+  secret: process.env.NEXTAUTH_SECRET || "6/g/9kF5kFEC0vFnAWaLF4Ctq0/KQ3vkCDSH/OajkOc=",
+  pages: {
+    signIn: "/login"
+  }
+});
 
 export const config = {
   matcher: [
