@@ -69,16 +69,37 @@ const DEFAULT_SLIDES: CoercedSlide[] = [
 ];
 
 async function storeGet<T>(key: string): Promise<T | null> {
+  // 1. Instant local cache read (0ms latency)
+  if (typeof window !== "undefined") {
+    try {
+      const local = localStorage.getItem(key);
+      if (local) return JSON.parse(local) as T;
+    } catch {}
+  }
+  // 2. Background server fetch
   try {
     const res = await fetch(`/api/store?key=${key}`);
     if (!res.ok) return null;
     const data = await res.json();
+    if (data?.value && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(key, JSON.stringify(data.value));
+      } catch {}
+    }
     return (data?.value as T) ?? null;
   } catch {
     return null;
   }
 }
+
 async function storeSet(key: string, value: unknown): Promise<void> {
+  // 1. Instant local persistence
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {}
+  }
+  // 2. Async server sync (non-blocking)
   try {
     await fetch(`/api/store?key=${key}`, {
       method: "PUT",

@@ -31,15 +31,15 @@ export async function GET(req: NextRequest) {
     if (error) {
       if (error.code === "PGRST116") {
         // No row found for key
-        return NextResponse.json({ value: null });
+        return NextResponse.json({ value: null }, { headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=300" } });
       }
       return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(data, { headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=300" } });
   } catch (e) {
     console.warn(`Local store GET fallback for ${key}:`, e);
-    return NextResponse.json({ value: null });
+    return NextResponse.json({ value: null }, { headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=300" } });
   }
 }
 

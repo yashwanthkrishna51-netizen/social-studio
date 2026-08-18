@@ -37,8 +37,8 @@ function LoginForm() {
         return;
       }
 
-      router.push(callbackUrl);
-      router.refresh();
+      // Hard redirect ensures cookies are immediately sent to middleware on the next request
+      window.location.href = callbackUrl;
     } catch (err) {
       setBusy(false);
       setError("An unexpected error occurred during sign in. Please try again.");
@@ -158,7 +158,10 @@ function LoginForm() {
               Work Email
             </label>
             <input
+              id="work-email"
+              name="email"
               type="email"
+              autoComplete="username"
               required
               autoFocus
               value={email}
@@ -187,6 +190,7 @@ function LoginForm() {
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
               <label
+                htmlFor="account-password"
                 style={{
                   fontFamily: "'Open Sans', sans-serif",
                   fontSize: 11.5,
@@ -216,7 +220,10 @@ function LoginForm() {
               </button>
             </div>
             <input
+              id="account-password"
+              name="password"
               type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
