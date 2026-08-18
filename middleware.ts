@@ -1,11 +1,42 @@
-import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export default withAuth({
-  secret: process.env.NEXTAUTH_SECRET || "6/g/9kF5kFEC0vFnAWaLF4Ctq0/KQ3vkCDSH/OajkOc=",
-  pages: {
-    signIn: "/login"
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // Allow public assets, login, and auth endpoints
+  if (
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/brand") ||
+    pathname === "/favicon.ico"
+  ) {
+    return NextResponse.next();
   }
-});
+
+  try {
+    const token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET || "6/g/9kF5kFEC0vFnAWaLF4Ctq0/KQ3vkCDSH/OajkOc="
+    });
+
+    if (!token) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("callbackUrl", req.nextUrl.pathname);
+      return NextResponse.redirect(url);
+    }
+  } catch (e) {
+    console.error("Middleware auth check error:", e);
+    const url = req.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
