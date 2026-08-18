@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
+const SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "kognoz-social-studio-secure-auth-secret-key-2026";
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -16,11 +18,28 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Check for presence of session cookie (handles both HTTPS __Secure- prefix and HTTP)
+  const hasSecureCookie = req.cookies.has("__Secure-next-auth.session-token");
+  const hasPlainCookie = req.cookies.has("next-auth.session-token");
+
+  if (!hasSecureCookie && !hasPlainCookie) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("callbackUrl", req.nextUrl.pathname);
+    return NextResponse.redirect(url);
+  }
+
   try {
-    const token = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "kognoz-social-studio-secure-auth-secret-key-2026"
-    });
+    let token = null;
+    if (hasSecureCookie) {
+      token = await getToken({ req, secret: SECRET, secureCookie: true });
+    }
+    if (!token && hasPlainCookie) {
+      token = await getToken({ req, secret: SECRET, secureCookie: false });
+    }
+    if (!token) {
+      token = await getToken({ req, secret: SECRET });
+    }
 
     if (!token) {
       const url = req.nextUrl.clone();
