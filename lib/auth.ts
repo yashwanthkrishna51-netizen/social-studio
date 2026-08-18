@@ -11,7 +11,7 @@ import { getSupabaseServerClient } from "@/lib/supabase";
 // scripts/add-user.mjs (hashes the password server-side, never stores plaintext).
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "kognoz-social-studio-secure-auth-secret-key-2026",
   session: { strategy: "jwt" },
   providers: [
     CredentialsProvider({

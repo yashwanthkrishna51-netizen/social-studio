@@ -19,7 +19,7 @@ export async function middleware(req: NextRequest) {
   try {
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET
+      secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "kognoz-social-studio-secure-auth-secret-key-2026"
     });
 
     if (!token) {
